@@ -790,7 +790,7 @@
 	(footprint "Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical"
 		(layer "F.Cu")
 		(uuid "0fa204b6-adee-498c-9f17-d0e959f29527")
-		(at 102.7 74.5 -90)
+		(at 104.5 74.5 -90)
 		(descr "JST PH series connector, B2B-PH-K (http://www.jst-mfg.com/product/pdf/eng/ePH.pdf), generated with kicad-footprint-generator")
 		(tags "connector JST PH side entry")
 		(property "Reference" "BT1"
@@ -11611,7 +11611,7 @@
 		)
 	)
 	(gr_text "+ -"
-		(at 106.5 78 90)
+		(at 108.3 78 90)
 		(layer "F.SilkS")
 		(uuid "cfad1c88-d7f1-43eb-8bf0-186d80f13345")
 		(effects
@@ -11634,8 +11634,8 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text "3.7V"
-		(at 101.5 71.5 0)
+	(gr_text "BATTERY"
+		(at 101 71.5 0)
 		(layer "F.SilkS")
 		(uuid "ecf8174c-e8f7-421a-a6cc-41f98a2d6251")
 		(effects
@@ -11659,12 +11659,12 @@
 		)
 	)
 	(segment
-		(start 102.7 76.5)
+		(start 104.5 76.5)
 		(end 96.5 76.5)
 		(width 0.5)
 		(layer "F.Cu")
 		(net 1)
-		(uuid "6a26145a-3cf0-439f-b5ab-4e9355afb968")
+		(uuid "9246e605-b250-4317-b655-3c04dd583f97")
 	)
 	(segment
 		(start 73.95 76)
