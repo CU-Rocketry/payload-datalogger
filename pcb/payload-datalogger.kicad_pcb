@@ -9009,6 +9009,7 @@
 		(property "Reference" "J2"
 			(at -4.315 -2.77 90)
 			(layer "F.SilkS")
+			(hide yes)
 			(uuid "4570df9e-e18e-4ac6-a799-9eb428c89804")
 			(effects
 				(font
@@ -12672,14 +12673,6 @@
 		(uuid "ba79eaaa-9a4d-4413-89a8-a38b6251814a")
 	)
 	(segment
-		(start 107.5 47.46)
-		(end 110.46 47.46)
-		(width 1)
-		(layer "F.Cu")
-		(net 3)
-		(uuid "d7804c91-754f-4b27-89c3-b1ed876626d6")
-	)
-	(segment
 		(start 84.5 67.85)
 		(end 84 67.85)
 		(width 0.5)
@@ -12694,14 +12687,6 @@
 		(layer "F.Cu")
 		(net 3)
 		(uuid "f11582b6-3463-489a-9db5-e734caf2eeff")
-	)
-	(segment
-		(start 107.5 47.46)
-		(end 106.04 47.46)
-		(width 1)
-		(layer "F.Cu")
-		(net 3)
-		(uuid "f9d8ca98-c9bf-4fad-a583-bfbb220c2ad0")
 	)
 	(via
 		(at 88 66)
