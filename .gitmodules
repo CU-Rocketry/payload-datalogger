@@ -1,0 +1,6 @@
+[submodule "pcb/kicad-library-sigmondkukla"]
+	path = pcb/kicad-library-sigmondkukla
+	url = git@github.com:sigmondkukla/kicad-library-sigmondkukla
+[submodule "pcb/OPL_Kicad_Library"]
+	path = pcb/OPL_Kicad_Library
+	url = git@github.com:Seeed-Studio/OPL_Kicad_Library.git

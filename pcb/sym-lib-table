@@ -1,0 +1,6 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "MCP96RL00T-E_MX")(type "KiCad")(uri "${KIPRJMOD}/kicad-library-sigmondkukla/symbols/MCP96RL00T-E_MX.kicad_sym")(options "")(descr ""))
+  (lib (name "Seeed_Studio_XIAO_Series")(type "KiCad")(uri "${KIPRJMOD}/OPL_Kicad_Library/Seeed Studio XIAO Series Library/Seeed_Studio_XIAO_Series.kicad_sym")(options "")(descr ""))
+  (lib (name "NCP177AMX330TCG")(type "KiCad")(uri "${KIPRJMOD}/kicad-library-sigmondkukla/symbols/NCP177AMX330TCG.kicad_sym")(options "")(descr ""))
+)
