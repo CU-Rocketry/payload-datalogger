@@ -1408,7 +1408,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_DFN_QFN:TQFN-20-1EP_5x5mm_P0.65mm_EP3.25x3.25mm_ThermalVias"
+		(property "Footprint" "Package_DFN_QFN:TQFN-20-1EP_5x5mm_P0.65mm_EP3.25x3.25mm"
 			(at 139.7 86.36 0)
 			(effects
 				(font
