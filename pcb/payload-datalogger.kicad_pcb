@@ -1990,7 +1990,7 @@
 			)
 		)
 		(property "Value" "MCP96RL00T-E_MX"
-			(at -4.1 0.5 180)
+			(at -4.1 0.5 0)
 			(layer "F.Fab")
 			(uuid "b93ef704-eb4b-4335-a63b-68d6c2075614")
 			(effects
@@ -2513,7 +2513,7 @@
 			(uuid "958b3abf-76aa-4d83-956f-cd8433af0b6f")
 		)
 		(embedded_fonts no)
-		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TQFN-20-1EP_5x5mm_P0.65mm_EP3.25x3.25mm.wrl"
+		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TQFN-20-1EP_5x5mm_P0.65mm_EP3.1x3.1mm.wrl"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -5563,7 +5563,7 @@
 		(descr "TQFN, 20 Pin (https://pdfserv.maximintegrated.com/package_dwgs/21-0140.PDF (T2055-5)), generated with kicad-footprint-generator ipc_noLead_generator.py")
 		(tags "TQFN NoLead")
 		(property "Reference" "U6"
-			(at 0 -3.8 270)
+			(at 0 -3.8 90)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "e898e08b-fa53-443a-912f-b5a76e9576b4")
@@ -5586,7 +5586,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "558b569c-e6ff-4882-9176-9a894d5b6280")
@@ -5598,7 +5598,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "06a191dc-ddca-4754-8567-d311c79e4f65")
@@ -5848,7 +5848,7 @@
 			(uuid "e20324ff-46bc-46c9-8a83-ded94201f937")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(uuid "e1b536cb-4106-48aa-981d-3d5597d38c7a")
 			(effects
@@ -6098,7 +6098,7 @@
 			(uuid "334f48c1-6c46-4803-9522-cb465954f2e4")
 		)
 		(embedded_fonts no)
-		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TQFN-20-1EP_5x5mm_P0.65mm_EP3.25x3.25mm.wrl"
+		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TQFN-20-1EP_5x5mm_P0.65mm_EP3.1x3.1mm.wrl"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -8093,7 +8093,7 @@
 		(descr "TQFN, 20 Pin (https://pdfserv.maximintegrated.com/package_dwgs/21-0140.PDF (T2055-5)), generated with kicad-footprint-generator ipc_noLead_generator.py")
 		(tags "TQFN NoLead")
 		(property "Reference" "U5"
-			(at 0 -3.8 270)
+			(at 0 -3.8 90)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "38a1a82a-51b8-4f92-b349-69ca3f13fbd4")
@@ -8116,7 +8116,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "7d9d925e-43a2-46e2-be08-54d8bdb721af")
@@ -8128,7 +8128,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "6c89311c-6c59-4ef1-89a7-18fa3994bdad")
@@ -8378,7 +8378,7 @@
 			(uuid "9694ef43-eb6b-41df-ba8f-7285b37ed9bc")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(uuid "f855f3c1-751f-453d-9d0b-727b61701e82")
 			(effects
@@ -8628,7 +8628,7 @@
 			(uuid "ddbba74d-a430-4ab9-95cf-726fafa6d090")
 		)
 		(embedded_fonts no)
-		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TQFN-20-1EP_5x5mm_P0.65mm_EP3.25x3.25mm.wrl"
+		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TQFN-20-1EP_5x5mm_P0.65mm_EP3.1x3.1mm.wrl"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -9215,7 +9215,7 @@
 		(descr "TQFN, 20 Pin (https://pdfserv.maximintegrated.com/package_dwgs/21-0140.PDF (T2055-5)), generated with kicad-footprint-generator ipc_noLead_generator.py")
 		(tags "TQFN NoLead")
 		(property "Reference" "U4"
-			(at 0 -3.8 270)
+			(at 0 -3.8 90)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "53f27bed-bb28-4f6b-a806-81a06e1fa242")
@@ -9227,7 +9227,7 @@
 			)
 		)
 		(property "Value" "MCP96RL00T-E_MX"
-			(at 0 3.8 270)
+			(at 0 3.8 90)
 			(layer "F.Fab")
 			(uuid "ab89a656-b19a-41d5-8652-c7ae9591b7a5")
 			(effects
@@ -9238,7 +9238,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "08f9b5cb-84bc-43aa-a232-ed22b80ded09")
@@ -9250,7 +9250,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "c473fdd7-3958-4fe6-bb1c-9d538aa82206")
@@ -9500,7 +9500,7 @@
 			(uuid "202f670a-7efa-416d-bfb2-7b20272c886f")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(uuid "8915a5d8-5aa7-4054-a78c-12952bd26619")
 			(effects
@@ -9750,7 +9750,7 @@
 			(uuid "9f87bdde-6608-4965-9498-3a64ac97ee62")
 		)
 		(embedded_fonts no)
-		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TQFN-20-1EP_5x5mm_P0.65mm_EP3.25x3.25mm.wrl"
+		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/TQFN-20-1EP_5x5mm_P0.65mm_EP3.1x3.1mm.wrl"
 			(offset
 				(xyz 0 0 0)
 			)

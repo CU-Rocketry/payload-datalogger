@@ -36,6 +36,7 @@ Wirelessly configurable thermocouple data logging PCB implementing four MCP96RL0
 |  | Jumper |  | 2 | QPC02SXGN-RC |
 |  | Battery option (3.7V 1000mAh) |  |  | https://www.amazon.com/dp/B0D9K7HQHT |
 |  | Battery option (3.7V 2000mAh) |  |  | https://www.amazon.com/dp/B0CYWVSJKS |
+|  | FTDI adapter |  |  | https://www.amazon.com/dp/B0BJKCSZZW |
 
 **BOM cost:** $61 (on DigiKey, for two boards with attrition)
 
