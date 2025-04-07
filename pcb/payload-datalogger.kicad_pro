@@ -92,10 +92,6 @@
           "Increased thermal pad via holes to 0.3mm for cheaper JLC"
         ],
         [
-          "silk_overlap|93194612|75690000|90701d16-95b7-4813-b316-0c623fd94b4a|cfad1c88-d7f1-43eb-8bf0-186d80f13345",
-          ""
-        ],
-        [
           "starved_thermal|77562500|46000000|230c6651-fc0d-41e2-9970-09070bdb9949|d5a18045-d631-42d7-90cc-e8a8ad324183|F.Cu",
           ""
         ],
