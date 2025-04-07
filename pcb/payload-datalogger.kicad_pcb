@@ -14370,7 +14370,7 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text "BATT"
+	(gr_text "BATT <6V"
 		(at 97.5 80.3 0)
 		(layer "F.SilkS")
 		(uuid "ecf8174c-e8f7-421a-a6cc-41f98a2d6251")
