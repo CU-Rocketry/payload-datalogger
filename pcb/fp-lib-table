@@ -3,4 +3,5 @@
   (lib (name "Seeed Studio XIAO Series Library")(type "KiCad")(uri "${KIPRJMOD}/OPL_Kicad_Library/Seeed Studio XIAO Series Library")(options "")(descr ""))
   (lib (name "B38G3RGB")(type "KiCad")(uri "${KIPRJMOD}/kicad-library-sigmondkukla/footprints/B38G3RGB.pretty")(options "")(descr ""))
   (lib (name "PTS815_SJM_250_SMTR_LFS")(type "KiCad")(uri "${KIPRJMOD}/kicad-library-sigmondkukla/footprints/PTS815_SJM_250_SMTR_LFS.pretty")(options "")(descr ""))
+  (lib (name "BUxxSD5")(type "KiCad")(uri "${KIPRJMOD}/kicad-library-sigmondkukla/footprints/BUxxSD5.pretty")(options "")(descr ""))
 )
