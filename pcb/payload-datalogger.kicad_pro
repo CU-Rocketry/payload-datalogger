@@ -88,6 +88,10 @@
           ""
         ],
         [
+          "lib_footprint_mismatch|113600000|59500000|378a2fff-446d-4432-aa56-928ab8bd56a1|00000000-0000-0000-0000-000000000000",
+          "Increased thermal pad via holes to 0.3mm for cheaper JLC"
+        ],
+        [
           "silk_overlap|93194612|75690000|90701d16-95b7-4813-b316-0c623fd94b4a|cfad1c88-d7f1-43eb-8bf0-186d80f13345",
           ""
         ],
