@@ -868,16 +868,6 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "Thermocouple header"
-		(exclude_from_sim no)
-		(at 96.52 81.534 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "43f08719-6a23-4ec7-b4d6-2c4086c4932e")
-	)
 	(junction
 		(at 139.7 53.34)
 		(diameter 0)
