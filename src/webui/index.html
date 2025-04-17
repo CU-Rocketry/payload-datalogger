@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUR Payload Datalogger</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <!-- Minimal inline CSS for basic table styling and layout -->
+    <style>
+        table {
+            border: 1px solid #444;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        input {
+            padding: 4px;
+        }
+
+        button {
+            padding: 4px 8px;
+        }
+    </style>
+    <!-- Importing HTMX for lightweight UI updates -->
+    <script src="htmx.min.js"></script>
+</head>
+
+<body>
+    <h1>CUR Payload Datalogger</h1>
+
+    <h2>Debug</h2>
+    <!-- Status LED toggle -->
+    <div id="led-toggle-div">
+        <label for="led-toggle">Status LED:</label>
+        <input type="checkbox" id="led-toggle" hx-post="/toggle_status_led" hx-trigger="change" hx-target="#led-toggle-div"
+            hx-swap="outerHTML">
+        <strong>OFF</strong>
+    </div>
+    <!-- User button read -->
+    <div id="user-button-div">
+        <button hx-get="/user_button_state" hx-target="#user-button-div" hx-swap="outerHTML">
+            Get User Button State
+        </button>
+        <strong>Unknown</strong>
+    </div>
+
+    <h2>Recording</h2>
+    <!-- Recording toggle -->
+    <div id="recording-toggle-div">
+        <button hx-post="/toggle_recording" hx-target="#recording-toggle-div" hx-swap="outerHTML"
+            hx-trigger="click">
+            Toggle Recording
+        </button>
+        <div>
+            Recording is currently <strong>OFF</strong>.
+        </div>
+    </div>
+    <!-- Input for selecting the recording rate -->
+    <div id="record-rate-div">
+        <label for="record-rate">Recording timestep [ms]:</label>
+        <input type="number" id="record-rate" name="rate" value="1000" min="1" hx-post="/set_rate" hx-trigger="change"
+            hx-target="#record-rate-div" hx-swap="outerHTML">
+        <div>Current timestep: <strong>1000</strong> ms</div>
+    </div>
+    <!-- Download Data -->
+    <div id="download-data-div">
+        <button hx-get="/download_data" hx-target="#download-data-div" hx-swap="outerHTML" hx-trigger="click">
+            Download Data
+        </button>
+        <div>Download status: Unknown</div>
+    </div>
+    <!-- Flash memory usage indicator -->
+    <div id="flash-usage-div">
+        <button hx-get="/flash_usage" hx-target="#flash-usage-div" hx-swap="outerHTML" hx-trigger="click,load">
+            Check Flash Usage
+        </button>
+        <div>Flash usage: Unknown</div>
+    </div>
+
+    <!-- Temperature Readings Table -->
+    <h2>Temperature Sensors</h2>
+    <div>
+        <button hx-get="/refresh_table" hx-target="#temperature-table" hx-swap="innerHTML" hx-trigger="click, every 5s">
+            Refresh Temperature Data
+        </button>
+    </div>
+    <table id="temperature-table">
+        <tr>
+            <th>Sensor</th>
+            <th>Temperature (°C)</th>
+        </tr>
+        <tr>
+            <td>NTC 0</td>
+            <td>25</td>
+        </tr>
+        <tr>
+            <td>NTC 1</td>
+            <td>25</td>
+        </tr>
+        <tr>
+            <td>Thermocouple 0</td>
+            <td>25</td>
+        </tr>
+        <tr>
+            <td>Thermocouple 1</td>
+            <td>25</td>
+        </tr>
+        <tr>
+            <td>Thermocouple 2</td>
+            <td>25</td>
+        </tr>
+        <tr>
+            <td>Thermocouple 3</td>
+            <td>25</td>
+        </tr>
+    </table>
+
+</body>
+
+</html>
