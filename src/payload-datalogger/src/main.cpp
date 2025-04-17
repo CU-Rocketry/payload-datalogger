@@ -8,6 +8,7 @@
 #include <Thermistor.h>
 #include <NTC_Thermistor.h>
 #include "MCP9600.h"
+#include<SPIMemory.h>
 
 // ESP32 will create an AP with these credentials
 const char *ssid = "CUR_Payload_Datalogger";
@@ -52,6 +53,9 @@ void thermocouples_init();
 UserLED status_led(USER_LED_PIN);
 UserButton user_btn(USER_BUTTON_PIN);
 
+SPIFlash flash(FLASH_CS, &SPI);
+uint32_t flash_capacity = 0; // in bytes
+
 bool ledState = false;
 bool isRecording = false;
 int recordingTimestep = 1000;
@@ -62,7 +66,11 @@ void setup()
 
   Serial.println("Starting up");
 
-  thermocouples_init();  
+  thermocouples_init();
+
+  flash.begin();
+  // flash.setClock(50000000); // requires experimentation
+  flash_capacity = flash.getCapacity();
 
   Serial.println("Peripherals initialized");
 
