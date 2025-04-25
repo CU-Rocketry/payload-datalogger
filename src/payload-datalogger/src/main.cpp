@@ -8,7 +8,10 @@
 #include <Thermistor.h>
 #include <NTC_Thermistor.h>
 #include "MCP9600.h"
-#include<SPIMemory.h>
+#include <SPIMemory.h>
+#include <cstdint>
+#include <cstring>
+#include <array>
 
 // ESP32 will create an AP with these credentials
 const char *ssid = "CUR_Payload_Datalogger";
@@ -48,51 +51,126 @@ MCP9600 tc1(TC1_ADDRESS);
 MCP9600 tc2(TC2_ADDRESS);
 MCP9600 tc3(TC3_ADDRESS);
 
+void flash_init();
+void ap_init();
+void webserver_init();
 void thermocouples_init();
 
 UserLED status_led(USER_LED_PIN);
 UserButton user_btn(USER_BUTTON_PIN);
 
 SPIFlash flash(FLASH_CS, &SPI);
-uint32_t flash_capacity = 0; // in bytes
+uint32_t flash_capacity = 0;
+uint32_t flash_consumption = 0;
+uint32_t flash_pointer = 0; // should be aligned with page size
 
 bool ledState = false;
-bool isRecording = false;
-int recordingTimestep = 1000;
+
+// recording state
+bool is_logging = false;
+uint32_t logging_interval = 0; // [ms] between logging events
+uint32_t last_logging_time = 0; // [ms] since boot
+uint32_t current_time = 0; // [ms] since boot, fine for ~50 days
+uint32_t iteration = 0; // number of data points logged
+
+// 32*7 = 224 bits / 8 = 28 bytes per data point
+// at a 1Hz sampling rate, this is 28 bytes/s
+// at 1 hour, this is 28*60*60 = 100.8kB per hour
+// so we have 5 hours of recording time with no optimization
+// i.e. we could probably store everything as fixed point int16_t
+// but haven't figured that out quite yet
+
+// what about if we pad the data point to 32 bytes?
+// then we have 115.2kB per hour or 4 hours of recording time
+
+// with 32 bytes, we store 8 data points per page (256 bytes)
+
+#pragma pack(push, 1) // ensure no padding between struct members
+struct DataPoint
+{
+  uint32_t iteration;
+  uint32_t timestamp; // [ms] since boot
+  float ntc0_temp;
+  float ntc1_temp;
+  float tc0_temp;
+  float tc1_temp;
+  float tc2_temp;
+  float tc3_temp;
+};
+#pragma pack(pop) // restore default packing
+static_assert(sizeof(DataPoint) == 32, "DataPoint must be exactly 32 bytes");
+#define POINTS_PER_PAGE (256 / sizeof(DataPoint)) // 8 data points per page
+using Page = std::array<DataPoint, POINTS_PER_PAGE>; // we can store 8 points per 256 byte page
+using Buffer = std::array<std::uint8_t, sizeof(DataPoint) * POINTS_PER_PAGE>;
+static_assert(Buffer{}.size() == 256, "Serialized page must be 256 bytes");
+
+Page current_page;
 
 void setup()
 {
   Serial.begin(115200);
-
-  Serial.println("Starting up");
+  Serial.println("Serial started");
 
   thermocouples_init();
 
-  flash.begin();
-  // flash.setClock(50000000); // requires experimentation
-  flash_capacity = flash.getCapacity();
+  flash_init();
 
-  Serial.println("Peripherals initialized");
-
-  // Initialize SPIFFS for static file serving
-  if (!SPIFFS.begin(true))
+  if (!SPIFFS.begin(true)) // for static file serving. true -> format if mount fails
   {
     Serial.println("Error mounting SPIFFS");
     return;
   }
   Serial.println("SPIFFS mounted successfully");
 
-  Serial.println("Starting WiFi AP");
+  ap_init();
+  webserver_init();
+}
+
+void loop()
+{
+  current_time = millis();
+  if (is_logging) {
+    if (current_time >= last_logging_time + logging_interval){
+      float ntc0_temp = ntc0.readCelsius();
+      float ntc1_temp = ntc1.readCelsius();
+      float tc0_temp = tc0.getHotJunctionTemp();
+      float tc1_temp = tc1.getHotJunctionTemp();
+      float tc2_temp = tc2.getHotJunctionTemp();
+      float tc3_temp = tc3.getHotJunctionTemp();
+      DataPoint data_point = {iteration, current_time, ntc0_temp, ntc1_temp, tc0_temp, tc1_temp, tc2_temp, tc3_temp};
+
+      current_page[iteration % POINTS_PER_PAGE] = data_point;
+      iteration++;
+      if (iteration % POINTS_PER_PAGE == 0) {
+        writePage(current_page);
+      }
+    }
+  }
+}
+
+void flash_init(){
+  flash.begin();
+  // flash.setClock(50000000); // requires experimentation
+  flash_capacity = flash.getCapacity();
+}
+
+void ap_init(){
+  Serial.println("WiFi AP init");
 
   WiFi.softAP(ssid, password);
   WiFi.softAPConfig(local_ip, gateway, subnet);
 
-  Serial.print("Access Point started. SSID: ");
-  Serial.print(ssid);
-  Serial.print(" AP IP address: ");
+  Serial.println("WiFi AP configured");
+  Serial.print("SSID: ");
+  Serial.println(ssid);
+  Serial.print("Password: ");
+  Serial.println(password);
+  Serial.print("AP IP Address: ");
   Serial.println(WiFi.softAPIP());
+}
 
-  Serial.println("Starting web server");
+void webserver_init(){
+  Serial.println("Web server init");
 
   // Serve static files from SPIFFS
   server.serveStatic("/htmx.min.js", SPIFFS, "/htmx.min.js");
@@ -117,13 +195,13 @@ void setup()
   });
 
   server.on("/toggle_recording", HTTP_POST, [](AsyncWebServerRequest *request) {
-    isRecording = !isRecording; // Toggle the recording state
+    is_logging = !is_logging; // Toggle the recording state
     request->send(200, "text/html", renderRecordingToggleDiv()); // Send updated HTML for the recording toggle div
   });
 
   server.on("/set_rate", HTTP_POST, [](AsyncWebServerRequest *request) {
     if (request->hasParam("rate", true)) {
-      recordingTimestep = request->getParam("rate", true)->value().toInt(); // Update the recording timestep
+      logging_interval = (uint32_t)(request->getParam("rate", true)->value().toInt()); // Update the recording timestep
     }
     request->send(200, "text/html", renderTimestepInputDiv()); // Send updated HTML for the timestep input div
   });
@@ -144,14 +222,9 @@ void setup()
     request->send(200, "text/html", renderTemperatureTable()); // Send updated temperature table
   });
 
-  server.begin(); // begin web server
+  server.begin();
 
   Serial.println("Web server started");
-}
-
-void loop()
-{
-  
 }
 
 void thermocouples_init()
@@ -162,6 +235,25 @@ void thermocouples_init()
   if (!tc1.checkDeviceID()) Serial.println("TC1 Device ID check failed");
   if (!tc2.checkDeviceID()) Serial.println("TC2 Device ID check failed");
   if (!tc3.checkDeviceID()) Serial.println("TC3 Device ID check failed");
+}
+
+inline void serializePage(const Page& page, Buffer& buffer)
+{
+  std::memcpy(buffer.data(), page.data(), buffer.size());
+}
+
+inline void deserializePage(const Buffer& buffer, Page& page)
+{
+  std::memcpy(page.data(), buffer.data(), buffer.size());
+}
+
+void writePage(const Page& page)
+{
+  Buffer buffer;
+  serializePage(page, buffer);
+  // write entire buffer to flash
+  flash.writeAnything(flash_pointer, buffer.data(), buffer.size());
+  flash_pointer += sizeof(Page); // increment page pointer
 }
 
 String renderLedToggleDiv()
@@ -216,10 +308,10 @@ String renderRecordingToggleDiv()
 
   String html = "<div id=\"recording-toggle-div\">";
   html += "<button hx-post=\"/toggle_recording\" hx-target=\"#recording-toggle-div\" hx-swap=\"outerHTML\" hx-trigger=\"click\">";
-  html += (isRecording) ? "Stop Recording" : "Start Recording";
+  html += (is_logging) ? "Stop Recording" : "Start Recording";
   html += "</button>";
   html += "<div>Recording is currently <strong>";
-  html += (isRecording) ? "ON" : "OFF"; // Display the current recording state
+  html += (is_logging) ? "ON" : "OFF"; // Display the current recording state
   html += "</strong>.</div></div>";
   return html;
 }
@@ -236,8 +328,8 @@ String renderTimestepInputDiv()
   */
   String html = "<div id=\"record-rate-div\">";
   html += "<label for=\"record-rate\">Recording timestep [ms]:</label>";
-  html += "<input type=\"number\" id=\"record-rate\" name=\"rate\" value=\"" + String(recordingTimestep) + "\" min=\"1\" hx-post=\"/set_rate\" hx-trigger=\"change\" hx-target=\"#record-rate-div\" hx-swap=\"outerHTML\">";
-  html += "<div>Current timestep: <strong>" + String(recordingTimestep) + "</strong> ms</div></div>";
+  html += "<input type=\"number\" id=\"record-rate\" name=\"rate\" value=\"" + String(logging_interval) + "\" min=\"1\" hx-post=\"/set_rate\" hx-trigger=\"change\" hx-target=\"#record-rate-div\" hx-swap=\"outerHTML\">";
+  html += "<div>Current timestep: <strong>" + String(logging_interval) + "</strong> ms</div></div>";
   return html;
 }
 
