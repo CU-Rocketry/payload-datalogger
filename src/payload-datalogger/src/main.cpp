@@ -90,12 +90,12 @@ struct DataPoint
 {
     uint32_t iteration;
     uint32_t timestamp; // [ms] since boot
-    float ntc0_temp;
-    float ntc1_temp;
-    float tc0_temp;
-    float tc1_temp;
-    float tc2_temp;
-    float tc3_temp;
+    float ntc0_temp;    // [C], assuming 32 bit float
+    float ntc1_temp;    // [C]
+    float tc0_temp;     // [C]
+    float tc1_temp;     // [C]
+    float tc2_temp;     // [C]
+    float tc3_temp;     // [C]
 };
 #pragma pack(pop) // restore default packing
 static_assert(sizeof(DataPoint) == 32, "DataPoint must be exactly 32 bytes");
@@ -114,7 +114,7 @@ void setup()
     thermocouples_init();
     flash_init();
 
-    if (!SPIFFS.begin(true)) // for static file serving. true -> format if mount fails
+    if (!SPIFFS.begin(true)) // for static file serving, true: format if mount fails
     {
         Serial.println("Error mounting SPIFFS");
         return;
@@ -123,16 +123,17 @@ void setup()
 
     ap_init();
     webserver_init();
-    Serial.println("Setup complete. Datalogger ready.");
+
+    Serial.println("Setup complete");
 }
 
 void loop()
 {
     current_time = millis();
     if (is_logging) {
-        // Use subtraction for millis() rollover safety when checking intervals
-        if (current_time - last_logging_time >= logging_interval) {
+        if (current_time - last_logging_time >= logging_interval) { // if enough time has passed to log a new point
             
+            // get all temperatures
             float ntc0_temp = ntc0.readCelsius();
             float ntc1_temp = ntc1.readCelsius();
             float tc0_temp = tc0.getHotJunctionTemp();
@@ -144,22 +145,18 @@ void loop()
 
             current_page[iteration % POINTS_PER_PAGE] = data_point;
             
-            uint32_t iteration_for_this_point = iteration; // Store current iteration before incrementing
-            iteration++; // Increment for the next point
+            last_logging_time = current_time; // reset timer
+            iteration++; // increment iteration count
 
-            last_logging_time = current_time; // Update time after processing this interval's point
-
-            if (iteration % POINTS_PER_PAGE == 0) { // Page is now full
-                if (!writePageToFlash(current_page)) {
-                    // writePageToFlash sets is_logging to false if flash is full
-                    // Roll back iteration for the points on the page that couldn't be written
-                    iteration = iteration_for_this_point - (POINTS_PER_PAGE -1) ; 
-                    // Or more simply, iteration tracks points intended. If write fails, they are lost.
-                    // The current iteration value (after increment) will be the next point index
-                    // So if page write failed, (iteration - POINTS_PER_PAGE) to (iteration - 1) are lost.
-                    Serial.println("Failed to write page, data for this page lost.");
-                    // which would be bad
+            if (iteration % POINTS_PER_PAGE == 0) { // if we filled the page and are moving onto a new one
+                // write to flash
+                if (writePageToFlash(current_page)) {
+                    Serial.println("Successfully wrote page to flash");
+                } else {
+                    Serial.println("Failed to write page to flash.");
                 }
+
+                flash_pointer += sizeof(current_page); // increment flash pointer by page size
             }
         }
     }
@@ -338,7 +335,7 @@ bool writePageToFlash(const Page& page) {
     
     flash.writeAnything(flash_pointer, buffer.data(), buffer.size()); // potentially we could read back to verify?
     flash_pointer += sizeof(Page); 
-    // Serial.printf("Page written to flash. Flash pointer now: %lu\n", flash_pointer);
+    Serial.printf("Page written to flash. Flash pointer now: %lu\n", flash_pointer);
     return true;
 }
 
