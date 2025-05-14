@@ -77,9 +77,18 @@ uint32_t flash_pointer = 0; // should be aligned with page size
 // with 32 bytes, we store 8 data points per page (256 bytes)
 
 bool ledState = false;
+uint32_t last_led_time = 0; // [ms] since boot
+#define STATUS_LED_IDLE_DURATION 100 // [ms]
+#define STATUS_LED_IDLE_DELAY 900 // [ms]
+#define STATUS_LED_RECORDING_DURATION 1000 // [ms]
+#define STATUS_LED_RECORDING_DELAY 1000 // [ms]
 
-// recording state
-bool is_logging = false;
+enum class LoggingState
+{
+    IDLE,
+    RECORDING
+};
+LoggingState logging_state = LoggingState::IDLE;
 uint32_t logging_interval = 1000; // [ms] between logging events, default to 1s
 uint32_t last_logging_time = 0;   // [ms] since boot
 uint32_t current_time = 0;        // [ms] since boot, fine for ~50 days
@@ -132,35 +141,72 @@ void setup()
 void loop()
 {
     current_time = millis();
-    if (is_logging) {
-        if (current_time - last_logging_time >= logging_interval) { // if enough time has passed to log a new point
-            
-            // get all temperatures
-            float ntc0_temp = ntc0.readCelsius();
-            float ntc1_temp = ntc1.readCelsius();
-            float tc0_temp = tc0.getHotJunctionTemp();
-            float tc1_temp = tc1.getHotJunctionTemp();
-            float tc2_temp = tc2.getHotJunctionTemp();
-            float tc3_temp = tc3.getHotJunctionTemp();
-            
-            DataPoint data_point = {iteration, current_time, ntc0_temp, ntc1_temp, tc0_temp, tc1_temp, tc2_temp, tc3_temp};
-
-            current_page[iteration % POINTS_PER_PAGE] = data_point;
-            
-            last_logging_time = current_time; // reset timer
-            iteration++; // increment iteration count
-
-            if (iteration % POINTS_PER_PAGE == 0) { // if we filled the page and are moving onto a new one
-                // write to flash
-                if (writePageToFlash(current_page)) {
-                    Serial.println("Successfully wrote page to flash");
-                } else {
-                    Serial.println("Failed to write page to flash.");
+    switch (logging_state)
+    {
+        case LoggingState::IDLE:
+            // blink the status LED
+            if (ledState) {
+                if (current_time - last_led_time >= STATUS_LED_IDLE_DURATION) { // if enough time has passed to turn off the LED
+                    status_led.set(false);
+                    ledState = !ledState; // toggle LED state
+                    last_led_time = current_time; // reset timer
                 }
-
-                flash_pointer += sizeof(current_page); // increment flash pointer by page size
+            } else {
+                if (current_time - last_led_time >= STATUS_LED_IDLE_DELAY) { // if enough time has passed to turn on the LED
+                    status_led.set(true);
+                    ledState = !ledState; // toggle LED state
+                    last_led_time = current_time; // reset timer
+                }
             }
-        }
+            
+            break;
+
+        case LoggingState::RECORDING:
+            // log data if timer elapsed
+            if (current_time - last_logging_time >= logging_interval) { // if enough time has passed to log a new point
+                
+                // get all temperatures
+                float ntc0_temp = ntc0.readCelsius();
+                float ntc1_temp = ntc1.readCelsius();
+                float tc0_temp = tc0.getHotJunctionTemp();
+                float tc1_temp = tc1.getHotJunctionTemp();
+                float tc2_temp = tc2.getHotJunctionTemp();
+                float tc3_temp = tc3.getHotJunctionTemp();
+                
+                DataPoint data_point = {iteration, current_time, ntc0_temp, ntc1_temp, tc0_temp, tc1_temp, tc2_temp, tc3_temp};
+
+                current_page[iteration % POINTS_PER_PAGE] = data_point;
+                
+                last_logging_time = current_time; // reset timer
+                iteration++; // increment iteration count
+
+                if (iteration % POINTS_PER_PAGE == 0) { // if we filled the page and are moving onto a new one
+                    // write to flash
+                    if (writePageToFlash(current_page)) {
+                        Serial.println("Successfully wrote page to flash");
+                    } else {
+                        Serial.println("Failed to write page to flash.");
+                    }
+
+                    flash_pointer += sizeof(current_page); // increment flash pointer by page size
+                }
+            }
+
+            // blink the status LED
+            if (ledState) {
+                if (current_time - last_led_time >= STATUS_LED_RECORDING_DURATION) { // if enough time has passed to turn off the LED
+                    status_led.set(false);
+                    ledState = !ledState; // toggle LED state
+                    last_led_time = current_time; // reset timer
+                }
+            } else {
+                if (current_time - last_led_time >= STATUS_LED_RECORDING_DELAY) { // if enough time has passed to turn on the LED
+                    status_led.set(true);
+                    ledState = !ledState; // toggle LED state
+                    last_led_time = current_time; // reset timer
+                }
+            }
+            break;
     }
 }
 
@@ -206,7 +252,8 @@ void webserver_init(){
 
     server.on("/toggle_recording", HTTP_POST, [](AsyncWebServerRequest *request) {
         is_logging = !is_logging;
-        if (is_logging) {
+        if () {
+
             Serial.println("Recording started.");
             last_logging_time = millis(); // Reset timer when starting
         } else {
