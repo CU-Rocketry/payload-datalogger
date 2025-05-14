@@ -2,9 +2,11 @@
 
 class UserLED {
     public:
-        UserLED(uint8_t pin) : led_pin(pin) {
-            pinMode(led_pin, OUTPUT);
-            digitalWrite(led_pin, LOW); // Initialize LED to OFF
+        UserLED(uint8_t pin) : led_pin(pin) {}
+
+        void init() {
+            pinMode(led_pin, OUTPUT); // Set the LED pin as output
+            set(false); // Initialize the LED to off
         }
 
         // Turns the status LED on or off depending on the provided state boolean

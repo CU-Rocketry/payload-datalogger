@@ -2,8 +2,10 @@
 
 class UserButton {
     public:
-        UserButton(uint8_t pin) : button_pin(pin) {
-            pinMode(button_pin, INPUT);
+        UserButton(uint8_t pin) : button_pin(pin) {}
+
+        void init() {
+            pinMode(button_pin, INPUT); // Set the button pin as input (hardware pull-up and debounce)
         }
 
         bool read(){

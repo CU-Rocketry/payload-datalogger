@@ -113,6 +113,8 @@ void setup()
 
     thermocouples_init();
     flash_init();
+    status_led.init();
+    user_btn.init();
 
     if (!SPIFFS.begin(true)) // for static file serving, true: format if mount fails
     {
