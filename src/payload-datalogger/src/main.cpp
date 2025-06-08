@@ -55,7 +55,8 @@ void flash_init();
 void ap_init();
 void webserver_init();
 void thermocouples_init();
-bool writePageToFlash(const Page& page);
+bool flushPageToFlash(const Page& page);
+void flushPartialPage();
 
 UserLED status_led(USER_LED_PIN);
 UserButton user_btn(USER_BUTTON_PIN);
@@ -76,7 +77,7 @@ uint32_t flash_pointer = 0; // should be aligned with page size
 
 // with 32 bytes, we store 8 data points per page (256 bytes)
 
-bool ledState = false;
+bool led_state = false;
 uint32_t last_led_time = 0; // [ms] since boot
 #define STATUS_LED_IDLE_DURATION 100 // [ms]
 #define STATUS_LED_IDLE_DELAY 900 // [ms]
@@ -141,24 +142,11 @@ void setup()
 void loop()
 {
     current_time = millis();
+
     switch (logging_state)
     {
         case LoggingState::IDLE:
-            // blink the status LED
-            if (ledState) {
-                if (current_time - last_led_time >= STATUS_LED_IDLE_DURATION) { // if enough time has passed to turn off the LED
-                    status_led.set(false);
-                    ledState = !ledState; // toggle LED state
-                    last_led_time = current_time; // reset timer
-                }
-            } else {
-                if (current_time - last_led_time >= STATUS_LED_IDLE_DELAY) { // if enough time has passed to turn on the LED
-                    status_led.set(true);
-                    ledState = !ledState; // toggle LED state
-                    last_led_time = current_time; // reset timer
-                }
-            }
-            
+            // nothing needed here yet            
             break;
 
         case LoggingState::RECORDING:
@@ -180,33 +168,44 @@ void loop()
                 last_logging_time = current_time; // reset timer
                 iteration++; // increment iteration count
 
-                if (iteration % POINTS_PER_PAGE == 0) { // if we filled the page and are moving onto a new one
+                if (iteration > 0 && iteration % POINTS_PER_PAGE == 0) { // if we filled the page and are moving onto a new one
                     // write to flash
-                    if (writePageToFlash(current_page)) {
+                    if (flushPageToFlash(current_page)) {
                         Serial.println("Successfully wrote page to flash");
                     } else {
                         Serial.println("Failed to write page to flash.");
                     }
-
-                    flash_pointer += sizeof(current_page); // increment flash pointer by page size
-                }
-            }
-
-            // blink the status LED
-            if (ledState) {
-                if (current_time - last_led_time >= STATUS_LED_RECORDING_DURATION) { // if enough time has passed to turn off the LED
-                    status_led.set(false);
-                    ledState = !ledState; // toggle LED state
-                    last_led_time = current_time; // reset timer
-                }
-            } else {
-                if (current_time - last_led_time >= STATUS_LED_RECORDING_DELAY) { // if enough time has passed to turn on the LED
-                    status_led.set(true);
-                    ledState = !ledState; // toggle LED state
-                    last_led_time = current_time; // reset timer
                 }
             }
             break;
+    }
+
+    // status LED blinking
+    uint32_t led_delay;
+    uint32_t led_duration;
+    switch (logging_state) {
+        case LoggingState::IDLE:
+            led_delay = STATUS_LED_IDLE_DELAY;
+            led_duration = STATUS_LED_IDLE_DURATION;
+            break;
+
+        case LoggingState::RECORDING:
+            led_delay = STATUS_LED_RECORDING_DELAY;
+            led_duration = STATUS_LED_RECORDING_DURATION;
+            break;
+    }
+    if (led_state) {
+        if (current_time - last_led_time >= led_duration) {
+            status_led.set(false); // turn off LED
+            led_state = false;
+            last_led_time = current_time; // reset timer
+        }
+    } else {
+        if (current_time - last_led_time >= led_delay) {
+            status_led.set(true); // turn on LED
+            led_state = true;
+            last_led_time = current_time; // reset timer
+        }
     }
 }
 
@@ -241,8 +240,8 @@ void webserver_init(){
     });
 
     server.on("/toggle_status_led", HTTP_POST, [](AsyncWebServerRequest *request) {
-        ledState = !ledState;
-        status_led.set(ledState);
+        led_state = !led_state;
+        status_led.set(led_state);
         request->send(200, "text/html", renderLedToggleDiv());
     });
 
@@ -251,12 +250,13 @@ void webserver_init(){
     });
 
     server.on("/toggle_recording", HTTP_POST, [](AsyncWebServerRequest *request) {
-        is_logging = !is_logging;
-        if () {
-
+        if (logging_state == LoggingState::IDLE) {
+            logging_state = LoggingState::RECORDING;
             Serial.println("Recording started.");
             last_logging_time = millis(); // Reset timer when starting
-        } else {
+        } else if (logging_state == LoggingState::RECORDING) {
+            logging_state = LoggingState::IDLE;
+            flushPartialPage();
             Serial.println("Recording stopped.");
             // Optionally, write any remaining data in current_page if it's partially filled
             // This requires more complex logic to write a partial page or pad it. This could be a pain.
@@ -279,6 +279,14 @@ void webserver_init(){
 
     server.on("/download_data", HTTP_GET, [](AsyncWebServerRequest *request) {
         Serial.println("Data download requested.");
+
+        // only proceeed if in idle state
+        if (logging_state != LoggingState::IDLE) {
+            Serial.println("Download aborted: please stop logging before downloading data.");
+            request->send(400, "text/plain", "Download aborted: please stop logging before downloading data.");
+            return;
+        }
+
         AsyncResponseStream *response = request->beginResponseStream("text/csv");
         response->addHeader("Content-Disposition", "attachment; filename=\"datalog.csv\"");
 
@@ -350,6 +358,21 @@ void webserver_init(){
         request->send(200, "text/html", renderTemperatureTable());
     });
 
+    server.on("/format_flash", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if (logging_state == LoggingState::RECORDING) {
+        request->send(400, "text/plain", "Cannot format while recording is active.");
+        return;
+    }
+    Serial.println("Formatting flash chip... This may take a moment.");
+    flash.eraseChip(); // Erase the entire flash chip
+    flash_pointer = 0; // Reset pointer
+    iteration = 0;     // Reset iteration count
+    Serial.println("Flash formatted successfully.");
+    
+    // Send back the updated flash usage div to show it's empty
+    request->send(200, "text/html", renderFlashDiv()); // respond with updated (zero) flash usage
+});
+
     server.begin();
     Serial.println("Web server started");
 }
@@ -373,10 +396,10 @@ inline void deserializePage(const Buffer& buffer, Page& page) {
 }
 
 // Returns true on success, false if flash is full and cancels logging
-bool writePageToFlash(const Page& page) {
+bool flushPageToFlash(const Page& page) {
     if (flash_pointer + sizeof(Page) > flash_capacity) {
         Serial.println("Flash full! Write operation aborted.");
-        is_logging = false; // Stop logging
+        logging_state = LoggingState::IDLE; // Stop logging
         return false;
     }
     Buffer buffer;
@@ -388,13 +411,26 @@ bool writePageToFlash(const Page& page) {
     return true;
 }
 
+void flushPartialPage() {
+    uint32_t points_in_page = iteration % POINTS_PER_PAGE;
+    if(points_in_page > 0) {
+        printf("Flushing partial page with %lu points.\n", points_in_page);
+        for (uint32_t i = points_in_page; i < POINTS_PER_PAGE; ++i) {
+            // Fill the rest of the page with zeros or invalid data
+            current_page[i] = {};
+        }
+
+        flushPageToFlash(current_page);
+    }
+}
+
 String renderLedToggleDiv() {
     String html = "<div id=\"led-toggle-div\">";
     html += "<label for=\"led-toggle\">Status LED:</label>";
     html += "<input type=\"checkbox\" id=\"led-toggle\" hx-post=\"/toggle_status_led\" hx-trigger=\"change\" hx-target=\"#led-toggle-div\" hx-swap=\"outerHTML\"";
-    html += (ledState) ? " checked>" : ">";
+    html += (led_state) ? " checked>" : ">";
     html += "<strong>";
-    html += (ledState) ? "ON" : "OFF";
+    html += (led_state) ? "ON" : "OFF";
     html += "</strong></div>";
     return html;
 }
@@ -412,10 +448,10 @@ String renderUserButtonDiv() {
 String renderRecordingToggleDiv() {
     String html = "<div id=\"recording-toggle-div\">";
     html += "<button hx-post=\"/toggle_recording\" hx-target=\"#recording-toggle-div\" hx-swap=\"outerHTML\" hx-trigger=\"click\">";
-    html += (is_logging) ? "Stop Recording" : "Start Recording";
+    html += (logging_state == LoggingState::RECORDING) ? "Stop Recording" : "Start Recording";
     html += "</button>";
     html += "<div>Recording is currently <strong>";
-    html += (is_logging) ? "ON" : "OFF";
+    html += (logging_state == LoggingState::RECORDING) ? "ON" : "OFF";
     html += "</strong>.</div></div>";
     return html;
 }
@@ -439,6 +475,12 @@ String renderDownloadDiv(){
 String renderFlashDiv(){
     String html = "<div id=\"flash-usage-div\">";
     html += "<button hx-get=\"/flash_usage\" hx-target=\"#flash-usage-div\" hx-swap=\"outerHTML\" hx-trigger=\"click,load\">Refresh Flash Usage</button>";
+    
+    // format flash button
+    html += "<button hx-post=\"/format_flash\" hx-target=\"#flash-usage-div\" hx-swap=\"outerHTML\" ";
+    html += "hx-confirm=\"Are you sure you want to erase ALL data on the flash chip? This cannot be undone.\">";
+    html += "Format Flash Storage</button>";
+    
     float usage_percent = 0.0;
     if (flash_capacity > 0) {
         usage_percent = ((float)flash_pointer / flash_capacity) * 100.0;
