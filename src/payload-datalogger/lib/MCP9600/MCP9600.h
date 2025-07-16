@@ -31,7 +31,7 @@ class MCP9600
 {
     // arguments: wire, address
     public:
-        MCP9600(uint8_t address) : address(address) {}
+        MCP9600(uint8_t address, TwoWire *wire) : address(address), wire(wire) {}
 
         bool checkDeviceID();
         bool isTemperatureReady();
@@ -100,6 +100,7 @@ class MCP9600
 
     private:
         uint8_t address;
+        TwoWire *wire;
 
         bool writeReg8(uint8_t reg, uint8_t value);
         bool writeReg16(uint8_t reg, uint16_t value);

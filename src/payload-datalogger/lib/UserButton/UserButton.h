@@ -9,7 +9,7 @@ class UserButton {
         }
 
         bool read(){
-            return !digitalRead(button_pin); // Read the button state
+            return !digitalRead(button_pin); // Active low configuration
         }
 
         // setup interrupt callback function

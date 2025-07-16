@@ -1,5 +1,5 @@
 #include "MCP9600.h"
-#include <Wire.h>
+#include <wire.h>
 
 bool MCP9600::isInputRangeExceeded()
 {
@@ -118,42 +118,44 @@ bool MCP9600::isTemperatureReady() {
 }
 
 bool MCP9600::checkDeviceID(){
-    uint8_t id = readReg16(MCP9600_DEVICEID);
+    uint16_t id = readReg16(MCP9600_DEVICEID);
+    // Serial.print("Device ID: ");
+    // Serial.println(id, HEX);
     return (id & 0xFF00)>>8 == 0x40;
 }
 
 bool MCP9600::writeReg8(uint8_t reg, uint8_t value)
 {
-    Wire.beginTransmission(address);
-    Wire.write(reg);
-    Wire.write(value);
-    return (Wire.endTransmission() == 0);
+    wire->beginTransmission(address);
+    wire->write(reg);
+    wire->write(value);
+    return (wire->endTransmission() == 0);
 }
 
 bool MCP9600::writeReg16(uint8_t reg, uint16_t value)
 {
-    Wire.beginTransmission(address);
-    Wire.write(reg);
-    Wire.write(value >> 8);
-    Wire.write(value & 0xFF);
-    return (Wire.endTransmission() == 0);
+    wire->beginTransmission(address);
+    wire->write(reg);
+    wire->write(value >> 8);
+    wire->write(value & 0xFF);
+    return (wire->endTransmission() == 0);
 }
 
 uint8_t MCP9600::readReg8(uint8_t reg)
 {
-    Wire.beginTransmission(address);
-    Wire.write(reg);
-    Wire.endTransmission();
-    Wire.requestFrom(address, (uint8_t)1);
-    return Wire.read();
+    wire->beginTransmission(address);
+    wire->write(reg);
+    wire->endTransmission();
+    wire->requestFrom(address, (uint8_t)1);
+    return wire->read();
 }
 
 uint16_t MCP9600::readReg16(uint8_t reg)
 {
-    Wire.beginTransmission(address);
-    Wire.write(reg);
-    Wire.endTransmission();
-    Wire.requestFrom(address, (uint8_t)2);
-    uint16_t value = (Wire.read() << 8) | Wire.read();
+    wire->beginTransmission(address);
+    wire->write(reg);
+    wire->endTransmission();
+    uint8_t result_bytes = wire->requestFrom(address, (uint8_t)2);
+    uint16_t value = (wire->read() << 8) | wire->read();
     return value;
 }
